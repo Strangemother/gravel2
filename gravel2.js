@@ -129,17 +129,52 @@ function arg(_a, ia, def, returnArray) {
         this._defaults = defaults;
         this._name = pluginName;
 
-        this.init.apply(this, arguments);
+        return this.init.apply(this, arguments);
     }
 
     Gravel2.prototype = {
+        /*
+        $('#selector').gravel2()               
+        $('#selector').gravel2(title)
+        $('#selector').gravel2(title, body)
+        $('#selector').gravel2(title, body, button)  
+        $('#selector').gravel2(title, buttons)  
+        $('#selector').gravel2(buttons)        
 
-        init: function(title) {
+
+        */
+        init: function() {
             var element = arg(arguments, 0, null),
-                title = arg(arguments, 1),
-                body = arg(arguments, 2),
-                buttons = arg(arguments, 3);
+                title   = arg(arguments, 1, null),
+                body    = arg(arguments, 2, null),
+                buttons = arg(arguments, 3, null);
             var self = this;
+
+            if(typeof(title) == 'object') {
+                buttons = title.buttons;
+                body = title.body;
+                self.__conf = title;
+                title = title.title;
+            }
+
+            // Arg swapping
+            
+            // No wrapped jquery or title.
+            // $('').gravel2()
+            if((!element) && (!title)) return false;
+
+            // $('#selector').gravel2(title, buttons)
+            if($.isArray(body) && (!buttons)) {
+                buttons = body; 
+                body = null;
+            }
+
+        
+            // $('#selector').gravel2(buttons)
+            if($.isArray(title) && (!body) && (!buttons)) {
+                buttons = title;
+                title = body = null;
+            }
 
             var _html = this.htmlTemplate(title, body, buttons)
             var callback = (function(){
@@ -152,6 +187,8 @@ function arg(_a, ia, def, returnArray) {
                 .bPopup(this.options, callback);
 
             $(_html).data(pluginName, this);
+
+            return this
         },
 
         element: function(){
@@ -159,16 +196,14 @@ function arg(_a, ia, def, returnArray) {
 
         },
 
-        bPopup: function(){
-            return this.htmlElement.data('bPopup')
-        },
-
         close: function(){
             this.close();
         },
 
         open: function(){
-            this.optn();
+            /* If previously closed and still exists, show()
+                else redraw() */
+
         },
 
         getTitle: function(){
@@ -185,51 +220,26 @@ function arg(_a, ia, def, returnArray) {
            
             var title  = this.options.text || arg(arguments, 0, 'Title');
 
-            var titleElement = this.findUsedTitleElement()
-
-            if( $titles.length >= 1) {
-                title = ( $(titleElement).html().length > 0 )? 
-                            $(titleElement).html(): 
-                            title;
-                // $($titles[0]).hide();
-            }
- 
-            return title;
-        },
-
-        findUsedTitleElement: function(){
             // Title Fallthrough
-            // Original code, template body
-            // Falling through each to pass back the used titleElement.
-            // This may not be the original html wrapped - When the 
-            // popup is open, the used title is within the gravel body.
-            
-            // Original - jQuery wrapped html is left; a copy is used for the popup
-            // Used - In the gravel body; not changed
-            // Copied - for use as the gravel title. 
-
-            debugger;
-            var _element = this.htmlElement || $(this.element);
-
-            var h2s = _element.find('.gravel-body h2');
-            if(h2s.length == 0) {
-                h2s = _element.find('h2');
-            }
-
+            var h2s = $(this.element).children('h2');
+            $(this.element).find('h2').length;
             $titles = h2s;
 
             // Check to ensure h2.title is unused
             if( h2s.length > 1 ) {
-                var h2ts = _element.find('h2.title');
+                var h2ts = $(this.element).find('h2.title');
                 if(h2ts.length >= 1) {
                     // .titles are thr h2's
                     $titles = h2ts;
                 }
             }
 
-            if($titles.length >= 1) {
-                return this._titleElement = $titles[0];
+            if( $titles.length >= 1) {
+                title = ( $($titles[0]).html().length > 0)? $($titles[0]).html(): title;
+                // $($titles[0]).hide();
             }
+ 
+            return title;
         },
 
         htmlClose: function() {
@@ -256,10 +266,19 @@ function arg(_a, ia, def, returnArray) {
             return html for the button container.
             
              */
-            var rbs = []
+            var rbs = [],
+                rendered,
+                button;
+
             for (var i = 0; i < buttonsArray.length; i++) {
-                var b = buttonsArray[i]
-                rbs.push(this.renderButton(b));
+                button = buttonsArray[i];
+                rendered = this.renderButton(button);
+                if(rendered.type == 'GravelButton') {
+                    rbs.push(rendered.html());
+                } else {
+                    rbs.push(rendered);
+                }
+
             };
             var buttons = rbs.join('')
             return '<div class="gravel-buttons">' + buttons + '</div>'
@@ -298,29 +317,432 @@ function arg(_a, ia, def, returnArray) {
             return sprintf(html, options)
         },
 
+
         renderButton: function(value, name, color){
-            var _value = value || 'button';
-            var _id = Math.random().toString(32).slice(2);
-            var _name = name || 'name';
-            var _color = color || 'green';
-            var _html = '<input id="' + _id + '" type="button" data-color="' + _color + '" class="gravel-button %(buttonClass)s" name="' + _name + '" value="' + _value + '">'
+            /* Valid values:
+            string -  used as 'value'
+            GravelButton
+            object - with options required for GravelButton
+            DOM Element | $(element) - jquery element to be used
+            */
+            var button;
+
+            if(typeof(value) == 'string') {
+                button = new GravelButton({
+                    value: value,
+                    name: name,
+                    color: color,
+                    click: function() {
+                        debugger;
+                        console.log("Button clicked")
+                    }
+                })
+            } else {
+                if(value.type == 'GravelButton') {
+                    button = value;
+                } else if(typeof(value) == 'object' && value.hasOwnProperty('value') ){
+                    button = new GravelButton(value)
+                } else {
+                    var _value = value || 'button';
+                    var _id = Math.random().toString(32).slice(2);
+                    var _name = name || 'name';
+                    var _color = color || 'green';
+                    var _html = '<input id="' + _id + '" type="button" data-color="' + _color + '" class="gravel-button %(buttonClass)s" name="' + _name + '" value="' + _value + '">'
+                }
+            }
+
+            if(button) {
+                _html = button;
+            }
             return _html;
+
         },
-
-
     };
 
 
     $.fn[pluginName] = function ( options ) {
         return this.each(function () {
-            if (!$.data(this, "gravel_" + pluginName)) {
-                $.data(this, "gravel_" + pluginName, new Gravel2( this, options ));
+            if (!$.data(this, pluginName)) {
+                $.data(this, pluginName, new Gravel2( this, options ));
             } else {
-                debugger;
-                // refresh the content, or redisplat
-                $.data(this, "gravel_" + pluginName)
+                var d = $.data(this, pluginName);
+                options.__data = d;
+                $.data(this, pluginName, new Gravel2( this, options ));
             }
         });
     };
 
 })( jQuery, window, document );
+
+/*
+Setting up a button can be done like:
+
+// Just the text.
+GravelButton('okay')
+
+// text, color
+GravelButton('okay', 'green')
+GravelButton('cancel', '#808080')
+
+// text, callback
+GravelButton('okay', onClick)
+
+// text, color, callback
+GravelButton('okay', 'green', onClick)
+
+
+GravelButton({
+    value: 'okay',
+    label: 'Button Text', // optional - Default 'value'
+    color: '#FFEEDD',
+    click: function(){}   
+})
+
+
+ */
+var GravelButton = function(){
+
+
+    var __val, // Default values and setup
+        label,
+        Color           = net.brehaut.Color,
+        defaultValue    = 'Okay',
+        defaultId       = Math.random().toString(32).slice(2),
+        defaultColor    = 'green',
+        defaultCall     = function(){},
+        defaultPosition = 'left';
+
+    // User passed values
+    var value    = arg(arguments, 0, defaultValue),     // GravelButton('okay')
+        color    = arg(arguments, 1, null),             // GravelButton('cancel', '#808080')
+        callback = arg(arguments, 2, null),             // GravelButton('okay', 'green', onClick)
+        position = arg(arguments, 3, defaultPosition),  // GravelButton('okay', 'green', onClick, 'left')
+        _id      = arg(arguments, 4, defaultId);        // GravelButton('okay', 'green', onClick, 'left', randomId)
+
+
+    // Has the user passed an object instead of arguments
+    if(typeof(value) == 'object') {
+        __val    = value;
+        value    = value.value    || defaultValue;
+        color    = value.color    || defaultColor;
+        callback = value.click    || defaultCall;
+        label    = value.label    || value;
+        position = value.position || position;
+        _id      = value.id       || _id;
+    }
+
+    // If a specific label has not been passed, used the give value
+    if(!label) label = value;
+
+    // GravelButton('okay', onClick)
+    if(typeof(color) == 'function') {
+        callback = color;
+        color = 'green' // default color.
+    }
+
+    if(!callback) {
+        // auto mapping the close method.
+        if(value == 'close') {
+            // Gravel scope
+            callback = function(){
+                this.close();
+            }
+        } else {
+            // does nothing :)
+            callback = function(){
+                return false;
+            }
+        }
+    }
+
+    if(!color) {
+        color = defaultColor
+    }
+
+    // Scope used by the button.
+    var pluginScope = {
+        value:    value,
+        color:    color,
+        label:    label,
+        callback: callback,
+        position: position,
+        _Color:   Color,
+        _id:      _id
+    }
+
+    var scope = (function(){
+        var Color   = net.brehaut.Color,
+            context = this;
+
+        var hook = {
+            type: 'GravelButton',
+            context: context,
+
+            text: function(){
+                // get + set the text
+                // Change the text on the button
+                /*
+                >>> b = GravelButton('ted')
+                >>> b.text() // ted
+                >>> 'ted'
+                >>> b.text('bill')
+                >>> b.text()
+                >>> 'bill'
+                >>> b.text(null)
+                >>> b.text()
+                >>> null
+                 */
+                var val = arg(arguments, 0, undefined);
+
+                if(val === undefined) {
+                    // calc color.
+                    return this._label || this.context.label;
+                }
+
+                this._label = val;
+                return this;
+            },
+            getId: function(){
+                return this.context._id;
+            },
+            buttonColor: function(){
+                // get, set the color of the buttons.
+                // Text color (.dark or .light) and border color will be automatically
+                // altered to compensate.
+                // Pass 'false' as a second argument to not do the updates.
+                // You can alter backgroundColor() and borderColor()
+                // seperately.
+                var val = arg(arguments, 0, undefined);
+
+                if(val === undefined) {
+                    // calc color.
+                    return this.backgroundColor()
+                }
+
+                this.backgroundColor(val);
+
+                var Color = this.context._Color;
+                var _bc = this.calculateBorderColor(val)
+
+                if(!this._borderColor) {
+                    this.borderColor(_bc);
+                }
+
+                this.textColor( (this._textColor || null) )
+                //Determine borderColor based upon the new backgroundColor;
+                
+
+            },
+
+            calculateBorderColor: function(){
+                var val = arg(arguments, 0, this.backgroundColor());
+                return Color(val).darkenByAmount(.2).toString();
+            },
+
+            borderColor: function(){
+                // change the borderColor to the user defined.
+                // Passing 'null' will reset the button to auto set the border
+                // color
+                /*
+                >>> s=GravelButton('bob')
+                >>> // Change the background only
+                >>> s.backgroundColor('red')
+
+                >>> // check they are the same before change
+                >>> (s.backgroundColor() == s.borderColor())
+
+                >>> // Change the border only
+                >>> s.borderColor('blue')
+
+                >>> (s.borderColor() != s.backgroundColor() )
+                >>> s.borderColor(null)
+                >>> (s.borderColor() == s.backgroundColor() )
+                 */
+                var val = arg(arguments, 0, undefined);
+
+                if(val === undefined) {
+
+                    return this._borderColor || this.calculateBorderColor( this.backgroundColor() );
+                }
+
+                this._borderColor = val;
+
+                // visual elements exist, apply live.
+                if(this.element) {
+                    // save into the data attribute
+                    this.element.data('bordercolor', val);
+                    // Change text color
+                    this.element.css('border-color', val)
+                }
+
+
+                return this;
+            },
+            backgroundColor: function(){
+                // Change the background color of the button without affecting
+                // text color or border color.
+                /*
+                >>> b = GravelButton('ted')
+                >>> b.backgroundColor() // ted
+                >>> 'green'
+                >>> b.backgroundColor('red')
+                >>> b.backgroundColor()
+                >>> 'red'
+                >>> b.backgroundColor(null)
+                >>> b.backgroundColor()
+                >>> 'green'
+                */
+                var val = arg(arguments, 0, undefined);
+
+                if(val === undefined) {
+                    return this._backgroundColor || this.context.color;
+                }
+                
+                this._backgroundColor = val;
+
+                // visual elements exist, apply live.
+                if(this.element) {
+                    // save into the data attribute
+                    this.element.data('color', val);
+                    // Change text color
+                    this.element.css('background-color', val)
+                }
+
+                return this;
+            },
+            textColor: function(){
+                // Change the color of the text. Set 'null' for the
+                // button to do this automatically based on the backgroundColor state
+                // set 'false' to remove this feature; to be handled by CSS
+                // styles alone.
+                var val = arg(arguments, 0, undefined);
+                var cl = this.getTextColorClass();
+                var clc = ( (cl=='dark')? 'black': 'white' );
+                
+                // Nothing passed, return current color
+                if(val === undefined) return this._textColor || clc;
+
+                // Reset - apply calculated value instead.
+                // if(val == null) val = clc; 
+
+                this._textColor = val;
+
+                // visual elements exist, apply live.
+                if(this.element) {
+                    // save into the data attribute
+                    this.element.data('textcolor', clc);
+                    // Change text color
+                    this.element.css('color', clc)
+                }
+
+                return this;
+            },
+            click: function() {
+                /*
+                Provide a new click function by passing a new click method
+                this.click(function(){}) // return this
+                this.click(e, ... )      // calls event
+                this.click()            // return click function
+                 */
+                
+                var val = arg(arguments, 0, undefined);
+
+                if(val === undefined) {
+                    // nothing passed
+                    return this._click = this.context.callback;
+                } else if(val.type == 'click'){
+                    // new click handler
+                    var callFunc = this._click || this.context.callback;
+                    callFunc.apply(this, arguments);
+                }
+
+                this._click = val;
+                
+                return this;
+            },
+            position: function(){
+                /*
+                The position is applied via css attribute 'left' or 'right'.
+                By default this is left.
+                */
+               
+                var val = arg(arguments, 0, undefined)
+                if(val === undefined) {
+                    // calc color. 
+                    return this._position || this.context.position
+                }
+
+                this._position = val;
+                return this;
+            },
+            html: function(){
+                /*
+                Return dom ready HTML
+                 */
+                var _col = this.backgroundColor(),
+                    _tc  = this.textColor(),
+                    _bc  = this.borderColor(),
+                    _tx  = this.text(),
+                    _pos = this.position(),
+                    _con = this.getTextColorClass()
+
+
+                var s = '<input id="' + this.getId() + '" '
+                    + 'data-color="' + _col + '" ' 
+                    + 'data-borderColor="' + _bc + '" ' 
+                    + 'data-textColor="' + _tc + '" ' 
+                    + 'name="gravel2_'  + this.context.value + '" '
+                    + 'value="' + _tx + '" '
+                    + 'class="gravel-button ' + _pos + ' ' + _con + '" '
+                    + 'type="button" >';
+            
+                return s;
+            },
+            render: function(parent) {
+                /*
+                Add this element to the passed parent, apply active styles
+                and click handler
+                 */
+                var $html = $(this.html());
+                // add to parent
+
+                // border color
+                $html.css('border-color', $html.data('bordercolor'))
+                $html.css('background-color', $html.data('color'))
+                $html.css('color', $html.data('textcolor'))
+
+                // click handler
+                var self = this;
+                $html.on('click', function(e){
+                    // call internal function
+                    self.click(e)
+                })
+                
+                this.element = $html.appendTo(parent);
+
+            },
+            getContrastYIQ: function(r,g,b){
+
+                var a = arguments;
+                var yiq = ((r*299)+(g*587)+(b*114)) / 1000;
+                return (yiq >= .5) ? 'dark' : 'light';
+            },
+
+
+            // Correct color button text.
+            getTextColorClass: function(){
+                // return 'dark', 'light' responding the current background color
+                var _color = this.context._Color( 
+                        arg(arguments, 0, this.backgroundColor() ) 
+                    );
+                return this.getContrastYIQ(_color.red, _color.green, _color.blue);
+            },
+
+
+
+        };
+        return hook;
+    }).apply(pluginScope)
+
+    return scope;
+}
