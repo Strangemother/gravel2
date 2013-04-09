@@ -1,0 +1,110 @@
+/*
+Reset styles for elements used
+ */
+.gravel2 .gravel-title,
+.gravel2 .gravel-body,
+.gravel2 .gravel-buttons {
+    display: initial;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    color: #666;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+.gravel2 {
+    background-color: #FFF;
+    border: solid 1px #CCC;
+    border-radius: 2px;
+    box-shadow: 0 2px 2px -1px rgba(50, 50, 50, .2);
+}
+
+.gravel2 .gravel-close {
+    font-size: 1.5em;
+    line-height: 2em;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    color: #AAA;
+    font-weight: bold;
+    cursor: pointer;
+    width: 2em;
+    border: none;
+    background-color: #FFF;
+    height: 2em;
+    text-align: center;
+}
+
+.gravel2 .gravel-close:hover {
+    background-color: #919191;
+    color: #FFF;
+}
+
+.gravel2 h2.gravel-title {
+    font-size: 25px;
+    font-weight: normal;
+    margin: 5px 0px 5px 20px;
+    letter-spacing: 1px;
+    color: #666;
+    display: block;
+}
+
+.gravel2 .gravel-body {
+    display: block;
+    margin: 0 20px;
+    min-width: 450px;
+}
+
+.gravel2 .gravel-buttons {
+    border-top: solid 2px #EFEFEF;
+    padding: 15px 0px 0px 0px;
+    margin: 20px 20px 15px 20px;
+    display: block;
+}
+
+.gravel2 .gravel-buttons .gravel-button {
+    border: none;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    border-radius: 2px;
+    box-shadow: 0 1px 1px rgba(100, 100, 100, .4);
+    height: 30px;
+    line-height: 30px;
+    padding: 0 15px;
+}
+
+
+.gravel2 .gravel-buttons .gravel-button.blue {
+    color: white;
+    background-color: #3CA5CE;
+    float: right;
+}
+
+.gravel2 .gravel-buttons .gravel-button.red {
+    color: white;
+    background-color: #A0140E;
+}
+
+.gravel2 .gravel-buttons .gravel-button.orange {
+    color: white;
+    background-color: #E06C00;
+}
+
+.gravel2 .gravel-buttons .gravel-button.yellow {
+    color: #333;
+    background-color: #E0B60E;
+}
+
+.gravel2 .gravel-buttons .gravel-button.green {
+    color: #FFF;
+    background-color: #6DBE62;
+    border: solid 1px #3BA83B;
+}
+
+.gravel2 .gravel-buttons .gravel-button.purple {
+    color: white;
+    background-color: #7B4196;
+}
