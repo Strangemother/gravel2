@@ -1,5 +1,5 @@
 function arg(_a, ia, def, returnArray) {
-    var v = null
+    var v = undefined
 
     // if ia is an array, find the
     // first correct definition
@@ -140,8 +140,6 @@ function arg(_a, ia, def, returnArray) {
         $('#selector').gravel2(title, body, button)  
         $('#selector').gravel2(title, buttons)  
         $('#selector').gravel2(buttons)        
-
-
         */
         init: function() {
             var element = arg(arguments, 0, null),
@@ -150,7 +148,7 @@ function arg(_a, ia, def, returnArray) {
                 buttons = arg(arguments, 3, null);
             var self = this;
 
-            if(typeof(title) == 'object') {
+            if(typeof(title) == 'object' && title != null) {
                 buttons = title.buttons;
                 body = title.body;
                 self.__conf = title;
@@ -183,11 +181,7 @@ function arg(_a, ia, def, returnArray) {
                 }
             })()
 
-            this.htmlElement = $(_html).addClass('gravel2') 
-                .bPopup(this.options, callback);
-
-            $(_html).data(pluginName, this);
-
+            this.htmlElement = this.firstRender(_html, callback);
             return this
         },
 
@@ -204,6 +198,17 @@ function arg(_a, ia, def, returnArray) {
             /* If previously closed and still exists, show()
                 else redraw() */
 
+        },
+        firstRender: function(_html,callback){
+            this.__cache = $(_html);
+            var self = this;
+            this.__cache.addClass('gravel2').bPopup(this.options, (function(){
+                self.activateButtons('#' + self.__buttonident);
+                return callback
+            }) );
+            this.__cache.data(pluginName, this);
+            
+            return this.__cache
         },
 
         getTitle: function(){
@@ -267,12 +272,15 @@ function arg(_a, ia, def, returnArray) {
             
              */
             var rbs = [],
+                __cache = [],
                 rendered,
                 button;
 
             for (var i = 0; i < buttonsArray.length; i++) {
                 button = buttonsArray[i];
                 rendered = this.renderButton(button);
+                
+                __cache.push(button);
                 if(rendered.type == 'GravelButton') {
                     rbs.push(rendered.html());
                 } else {
@@ -280,10 +288,24 @@ function arg(_a, ia, def, returnArray) {
                 }
 
             };
+            this.__buttonCache = __cache
             var buttons = rbs.join('')
             return '<div class="gravel-buttons">' + buttons + '</div>'
              
         },
+
+        activateButtons: function(parent){
+            /*
+            Perforn an activation method for the GravelButtons
+             */
+            if(this.__buttonCache)
+            for (var i = 0; i < this.__buttonCache.length; i++) {
+                if( this.__buttonCache[i].hasOwnProperty('render') ) {
+                    this.__buttonCache[i].render(parent)
+                }
+            };
+        },
+
 
         htmlTemplate: function(){
             /* return the HTML template  used for the gravel popup */
@@ -298,7 +320,10 @@ function arg(_a, ia, def, returnArray) {
             var closeHtml = this.htmlClose();
             var titleHtml = this.htmlTitle(title);
             var bodyHtml = this.htmlBody(body);
-            var buttonHtml = this.htmlButtons(buttons);
+            this.__buttonident = Math.random().toString(32).slice(2);
+            var buttonHtml = '<div id="' + this.__buttonident + '"></div>'
+
+
 
             var _html = '<div class=' + gClass + '>'
                 + closeHtml + titleHtml + bodyHtml + buttonHtml
@@ -366,6 +391,7 @@ function arg(_a, ia, def, returnArray) {
                 $.data(this, pluginName, new Gravel2( this, options ));
             } else {
                 var d = $.data(this, pluginName);
+                if(!options) options = {}
                 options.__data = d;
                 $.data(this, pluginName, new Gravel2( this, options ));
             }
@@ -679,7 +705,7 @@ var GravelButton = function(){
                 /*
                 Return dom ready HTML
                  */
-                var _col = this.backgroundColor(),
+                 var _col = this.backgroundColor(),
                     _tc  = this.textColor(),
                     _bc  = this.borderColor(),
                     _tx  = this.text(),
