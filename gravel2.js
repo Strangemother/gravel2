@@ -148,6 +148,8 @@ function arg(_a, ia, def, returnArray) {
                 buttons = arg(arguments, 3, null);
             var self = this;
 
+            this.__renderButtons = [];
+
             if(typeof(title) == 'object' && title != null) {
                 buttons = title.buttons;
                 body = title.body;
@@ -177,6 +179,7 @@ function arg(_a, ia, def, returnArray) {
             var _html = this.htmlTemplate(title, body, buttons)
             var callback = (function(){
                 return function(){
+                    self.renderButtons();
                     self.options.onLoad();
                 }
             })()
@@ -199,7 +202,8 @@ function arg(_a, ia, def, returnArray) {
                 else redraw() */
 
         },
-        firstRender: function(_html,callback){
+        firstRender: function(_html, callback){
+            console.log("firstRender")
             this.__cache = $(_html);
             var self = this;
             this.__cache.addClass('gravel2').bPopup(this.options, (function(){
@@ -266,7 +270,7 @@ function arg(_a, ia, def, returnArray) {
             return '<div class="gravel-body %(bodyClass)s">' + html + '</div>'
         },
 
-        htmlButtons: function(buttonsArray){
+        __htmlButtons: function(buttonsArray){
             /*
             return html for the button container.
             
@@ -293,15 +297,48 @@ function arg(_a, ia, def, returnArray) {
             return '<div class="gravel-buttons">' + buttons + '</div>'
              
         },
+        htmlButtons: function(buttonsArray){
+            /*
+            return html for the button container.
+            
+             */
+            var rbs = [],
+                rendered,
+                button;
 
+            for (var i = 0; i < buttonsArray.length; i++) {
+                button = buttonsArray[i];
+                // Render it.
+                rendered = this.renderButton(button);
+                // Store a raw reference of the buttons
+                this.__renderButtons.push(rendered);
+                if(rendered.type == 'GravelButton') {
+                    // For the gavel button hook. Append a placeholder for the buttons, 
+                    // of which will be later utlized and overridden by jQeury implementation
+                    // of GravelButton.render(placeholder)
+                    var _id = "gravel-button-placeholder-" + Math.random().toString(32).slice(2);
+                    var placeholder = "<div class='button-placeholder' id='"  + _id + "'></div>";
+                    rendered.__placeholder = _id;
+                    rbs.push(placeholder);
+                } else {
+                    rbs.push(rendered);
+                }
+
+            };
+            var buttons = rbs.join('')
+
+            return '<div class="gravel-buttons">' + buttons + '</div>'
+             
+        },
         activateButtons: function(parent){
             /*
             Perforn an activation method for the GravelButtons
              */
-            if(this.__buttonCache)
-            for (var i = 0; i < this.__buttonCache.length; i++) {
-                if( this.__buttonCache[i].hasOwnProperty('render') ) {
-                    this.__buttonCache[i].render(parent)
+            if(this.__renderButtons)
+            for (var i = 0; i < this.__renderButtons.length; i++) {
+                if( this.__renderButtons[i].hasOwnProperty('render') ) {
+                    // this.__renderButtons[i].render(parent, true);
+                    this.__renderButtons[i].render('#' + this.__renderButtons[i].__placeholder, true);
                 }
             };
         },
@@ -311,26 +348,47 @@ function arg(_a, ia, def, returnArray) {
             /* return the HTML template  used for the gravel popup */
             var title  = this.getTitle( arg(arguments, 0, 'oh Hai!') );
 
+            var defaultButtons = [{
+                value: 'Hi!',
+                color: '#808080',
+                click: function(){
+                    console.log("Template")
+                }
+            }]
             
             var body    =  this.options.bodyHtml || arg(arguments, 1, $(this.element).html());
-            var buttons = (this.options.buttons.length > 0)? this.options.buttons: arg(arguments, 2, ['close']);
+            var buttons = (this.options.buttons.length > 0)? this.options.buttons: arg(arguments, 2, defaultButtons);
 
             var gClass = pluginName;
 
             var closeHtml = this.htmlClose();
             var titleHtml = this.htmlTitle(title);
             var bodyHtml = this.htmlBody(body);
+            var buttonHtml = this.htmlButtons(buttons);
+
             this.__buttonident = Math.random().toString(32).slice(2);
-            var buttonHtml = '<div id="' + this.__buttonident + '"></div>'
-
-
-
+           // var buttonHtml = '<div id="' + this.__buttonident + '"></div>'
             var _html = '<div class=' + gClass + '>'
                 + closeHtml + titleHtml + bodyHtml + buttonHtml
                 + '</div>'
 
+
+
             var _rendered = this.renderHtml(_html, this.options);
-            return _rendered;
+
+            // return _rendered;
+            // Add to interface for width calulations
+            $t = $('.gravel-template');
+            if($t.length <= 0) {
+                $t = $('<div class="gravel-template" style="float: left;"></div>').appendTo('body')
+            }
+            
+            this._htmlTemplate = $t.append(_rendered).children();
+            
+            
+            this.width = this._htmlTemplate.find('.gravel-body').children().width();
+            this.height = this._htmlTemplate.height();
+            return this._htmlTemplate;
 
         },
 
@@ -351,7 +409,7 @@ function arg(_a, ia, def, returnArray) {
             DOM Element | $(element) - jquery element to be used
             */
             var button;
-
+            console.log("renderButton")
             if(typeof(value) == 'string') {
                 button = new GravelButton({
                     value: value,
@@ -368,11 +426,11 @@ function arg(_a, ia, def, returnArray) {
                 } else if(typeof(value) == 'object' && value.hasOwnProperty('value') ){
                     button = new GravelButton(value)
                 } else {
-                    var _value = value || 'button';
-                    var _id = Math.random().toString(32).slice(2);
-                    var _name = name || 'name';
-                    var _color = color || 'green';
-                    var _html = '<input id="' + _id + '" type="button" data-color="' + _color + '" class="gravel-button %(buttonClass)s" name="' + _name + '" value="' + _value + '">'
+                    var _value  = value || 'button';
+                    var _id     = Math.random().toString(32).slice(2);
+                    var _name   = name  || 'name';
+                    var _color  = color || 'green';
+                    var _html   = '<input id="' + _id + '" type="button" data-color="' + _color + '" class="gravel-button %(buttonClass)s" name="' + _name + '" value="' + _value + '">'
                 }
             }
 
@@ -679,7 +737,7 @@ var GravelButton = function(){
                 } else if(val.type == 'click'){
                     // new click handler
                     var callFunc = this._click || this.context.callback;
-                    callFunc.apply(this, arguments);
+                    return callFunc.apply(this, arguments);
                 }
 
                 this._click = val;
@@ -724,7 +782,7 @@ var GravelButton = function(){
             
                 return s;
             },
-            render: function(parent) {
+            render: function(parent, overwrite) {
                 /*
                 Add this element to the passed parent, apply active styles
                 and click handler
@@ -744,8 +802,24 @@ var GravelButton = function(){
                     self.click(e)
                 })
                 
-                this.element = $html.appendTo(parent);
+                if(overwrite) {
+                    
+                    this.element = $html;
+                    var t = $(parent).replaceWith(this.element)
+                }else {
+                    this.element = $html.appendTo(parent);
+                    
+                }
 
+
+            },
+
+            renderButtons: function(){
+                for (var i = 0; i < this.__renderButtons.length; i++) {
+                    if(this.__renderButtons[i].type == 'GravelButton') {
+                        this.__renderButtons[i].render('#' + this.__renderButtons[i].__placeholder, true);
+                    }
+                };
             },
             getContrastYIQ: function(r,g,b){
 

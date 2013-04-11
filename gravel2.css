@@ -1,3 +1,11 @@
+.gravel2 .gravel-buttons .gravel-button {
+    font-family: PT Sans caption;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 30px;
+    text-transform: uppercase;
+}
+
 /*
 Reset styles for elements used
  */
@@ -14,6 +22,7 @@ Reset styles for elements used
     box-shadow: none;
 }
 
+/* main popup panel styles. */
 .gravel2 {
     background-color: #FFF;
     border: solid 1px #CCC;
@@ -21,6 +30,7 @@ Reset styles for elements used
     box-shadow: 0 2px 2px -1px rgba(50, 50, 50, .2);
 }
 
+/* Close Button */
 .gravel2 .gravel-close {
     font-size: 1.5em;
     line-height: 2em;
@@ -42,40 +52,66 @@ Reset styles for elements used
     color: #FFF;
 }
 
+/* Title */
 .gravel2 h2.gravel-title {
     font-size: 25px;
     font-weight: normal;
+    font-family: Arial, helvetica, sans-serif;
     margin: 5px 0px 5px 20px;
     letter-spacing: 1px;
     color: #666;
     display: block;
 }
 
+/* content */
 .gravel2 .gravel-body {
     display: block;
     margin: 0 20px;
     min-width: 450px;
 }
 
+/* button style */
 .gravel2 .gravel-buttons {
     border-top: solid 2px #EFEFEF;
-    padding: 15px 0px 0px 0px;
-    margin: 20px 20px 15px 20px;
+    padding: 5px 0px 0px 0px;
+    margin: 20px 20px 5px 20px;
     display: block;
 }
 
 .gravel2 .gravel-buttons .gravel-button {
-    border: none;
+    border: solid 1px;
+    border-color: #EEE;
     font-size: 12px;
-    font-weight: bold;
+    font-weight: normal;
     letter-spacing: 1px;
     border-radius: 2px;
     box-shadow: 0 1px 1px rgba(100, 100, 100, .4);
-    height: 30px;
-    line-height: 30px;
-    padding: 0 15px;
+    height: 35px;
+    line-height: 35px;
+    padding: 0 10px;
+    cursor: pointer;
+}
+.gravel2 .gravel-buttons .gravel-button.dark {
+    text-shadow: 0 1px 0px rgba(255, 255, 255, 0.46);
 }
 
+/* as a button is rendered, it may require a placeholder */
+.gravel2 .gravel-buttons .button-placeholder {
+    height: 30px;
+    min-width: 60px;
+    border: solid 1px #eee;
+    line-height: 30px;
+    padding: 0 15px;
+    float: left;
+    margin: 10px;
+}
+
+/*
+Right floated buttons. Left is auto.
+ */
+.gravel2 .gravel-buttons .gravel-button.right {
+    float: right;
+}
 
 .gravel2 .gravel-buttons .gravel-button.blue {
     color: white;
