@@ -3,29 +3,81 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" type="text/css" href="gravel2.css">
     <!-- <script type="text/javascript" src='jquery-1.6.3.min.js'></script> -->
-    <script type="text/javascript" src='jquery-1.9.1.min.js'></script>
-    <script type="text/javascript" src='jquery.bpopup.js'></script>
-    <script type="text/javascript" src='sprintf.js'></script>
-    <script type="text/javascript" src='color.js'></script>
-    <script type="text/javascript" src='gravel2.js'></script>
+    <script type="text/javascript" src='js/jquery-1.9.1.min.js'></script>
+
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <script type="text/javascript" src='index.js'></script>
+    
+    <script type="text/javascript" src='src/jquery.bpopup.js'></script>
+    <script type="text/javascript" src='src/sprintf.min.js'></script>
+    <script type="text/javascript" src='src/color.js'></script>
+
+    <link rel="stylesheet" type="text/css" href="src/gravel2.css">
+    <script type="text/javascript" src='src/gravel2.js'></script>
 
     <title>Gravel test</title>
 </head>
 
 <body>
 
-    <div class="optionsPopup">
-        <h2 class="title">Options</h2>
-        This is some information Gravel will use to present a popup.
-        <ul>
-            <li>A thing</li>
-            <li>The other thing</li>
-        </ul>
+    <div class="examples">
+
+        <div class="example">
+            <p>Basic implementation is easy.</p>
+            <input type='button' class='run-example' value='run' data-hook='basicExample' />
+            <pre>
+                $('#basic-example').gravel2();
+            </pre>
+
+            <div id="basic-example" class='pop-example'>
+                Gravel2 popup is genius! It's designed to be simple and efficient.
+            </div>
+        </div>
+
+        <div class="example">
+            <p>You can easily give your popup a title.</p>
+            <input type='button' class='run-example' value='run' data-hook='titleExample' />
+            <pre>
+                $('#title-example').gravel2('Custom Title');
+            </pre>
+
+            <div id="title-example" class='pop-example'>
+                Provide a title to the popup's method.
+            </div>
+        </div>
+
+        <div class="example">
+            <p>Or, use the wapped element's h2.</p>
+            <input type='button' class='run-example' value='run' data-hook='autoTitleExample' />
+            <pre>
+                $('#auto-title-example').gravel2();
+            </pre>
+
+            <div id="auto-title-example" class='pop-example'>
+                <h2>Auto title</h2>            
+                Titles can be automatic! using the most available h2 element within your jQuery wrapped element.
+            </div>     
+        </div>
+
+        <div class="example">
+            <p>If you're using lot's of h2's in your popup; GravelJS will find the nearest h2.title</p>
+            <input type='button' class='run-example' value='run' data-hook='manyTitleExample' />
+            <pre>
+                $('#many-title-example').gravel2();
+            </pre>
+
+            <div id="many-title-example" class='pop-example'>
+                <h2>First title</h2>
+                <p>This popup has lots of h2 elements</p>
+                <h2 class='title'>Used Title</h2>
+                <p>This could pose a problem for using the auto title technique.</p>           
+                <h2>Another title</h2>           
+                With lots of h2 elements, pick one by applying the 'title' class!
+            </div>     
+        </div>
+
     </div>
 
-
-    <div class="simple-data">This is some basic text information.</div>
 </body>
 </html>

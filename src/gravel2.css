@@ -61,6 +61,7 @@ Reset styles for elements used
     letter-spacing: 1px;
     color: #666;
     display: block;
+    line-height: 2em
 }
 
 /* content */
