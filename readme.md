@@ -54,3 +54,9 @@ proving HTML:
         <p>Titles can be automatic! using the most available h2 element within your jQuery wrapped element.</p>
     </div>
 
+
+With a Button
+
+g= $('<div/>', {
+ html: 'An error took place whilst talking to the server.'
+}).gravel2('alaps', [GravelButton('boo'), GravelButton('Argh', 'red')])
