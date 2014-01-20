@@ -53,6 +53,19 @@ function arg(_a, ia, def, returnArray) {
 // transition          [string]            ('fadeIn')            The transition of the popup when it opens. Types: ['fadeIn', 'slideDown', 'slideIn']. Version 0.9.0
 // zIndex              [int]               (9999)                Popup z-index, modal overlay = popup z-index - 1.
 
+gravel2 = function(title, content, options) {
+    if(!options) {
+        options = {}
+    }
+
+    var t = $('<div/>', {
+        html: content || options.body
+    });
+
+    options.title = title;
+
+    return $(t).gravel2(options)
+}
 
 ;(function ( $, window, document, undefined ) {
 
@@ -151,7 +164,7 @@ function arg(_a, ia, def, returnArray) {
             this.__renderButtons = [];
 
             if(typeof(title) == 'object' && title != null) {
-                buttons = title.buttons;
+                buttons = title.buttons || title;
                 body = title.body;
                 self.__conf = title;
                 title = title.title;
@@ -161,6 +174,7 @@ function arg(_a, ia, def, returnArray) {
             
             // No wrapped jquery or title.
             // $('').gravel2()
+            
             if((!element) && (!title)) return false;
 
             // $('#selector').gravel2(title, buttons)
@@ -194,7 +208,7 @@ function arg(_a, ia, def, returnArray) {
         },
 
         close: function(){
-            this.close();
+            $('.gravel-close').click();
         },
 
         open: function(){
@@ -285,6 +299,7 @@ function arg(_a, ia, def, returnArray) {
                 rendered = this.renderButton(button);
                 
                 __cache.push(button);
+
                 if(rendered.type == 'GravelButton') {
                     rbs.push(rendered.html());
                 } else {
@@ -312,6 +327,7 @@ function arg(_a, ia, def, returnArray) {
                 rendered = this.renderButton(button);
                 // Store a raw reference of the buttons
                 this.__renderButtons.push(rendered);
+                rendered._parent = this;
                 if(rendered.type == 'GravelButton') {
                     // For the gavel button hook. Append a placeholder for the buttons, 
                     // of which will be later utlized and overridden by jQeury implementation
@@ -416,7 +432,6 @@ function arg(_a, ia, def, returnArray) {
                     name: name,
                     color: color,
                     click: function() {
-                        debugger;
                         console.log("Button clicked")
                     }
                 })
@@ -444,7 +459,21 @@ function arg(_a, ia, def, returnArray) {
 
 
     $.fn[pluginName] = function ( options ) {
-        return this.each(function () {
+        var _args = arguments;
+        
+        var _each = this.each(function () {
+            var a = _args;
+        
+            if(typeof(options) == 'string') {
+                   var t = options;
+                   options = {
+                       title: t
+                   }
+            }
+            if($.isArray(a[1]) && !options.hasOwnProperty('buttons') ) {
+                options.buttons = a[1]
+            }
+            
             if (!$.data(this, pluginName)) {
                 $.data(this, pluginName, new Gravel2( this, options ));
             } else {
@@ -454,9 +483,12 @@ function arg(_a, ia, def, returnArray) {
                 $.data(this, pluginName, new Gravel2( this, options ));
             }
         });
+        
+        return _each;
     };
 
 })( jQuery, window, document );
+
 
 /*
 Setting up a button can be done like:
@@ -614,8 +646,15 @@ var GravelButton = function(){
 
                 this.textColor( (this._textColor || null) )
                 //Determine borderColor based upon the new backgroundColor;
-                
+        
+            },
 
+            parent: function(){
+                /*
+                return the parent Gravel popup object
+                (if any)
+                */
+                return this._parent
             },
 
             calculateBorderColor: function(){
@@ -815,6 +854,7 @@ var GravelButton = function(){
             },
 
             renderButtons: function(){
+
                 for (var i = 0; i < this.__renderButtons.length; i++) {
                     if(this.__renderButtons[i].type == 'GravelButton') {
                         this.__renderButtons[i].render('#' + this.__renderButtons[i].__placeholder, true);
@@ -837,9 +877,6 @@ var GravelButton = function(){
                     );
                 return this.getContrastYIQ(_color.red, _color.green, _color.blue);
             },
-
-
-
         };
         return hook;
     }).apply(pluginScope)
